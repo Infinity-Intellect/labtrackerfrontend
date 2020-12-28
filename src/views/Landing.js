@@ -10,10 +10,13 @@ const styles = {
         minHeight: "80vh",
     }
 }
-function Landing() {
+function Landing({isStaff}) {
     const history = useHistory()
     const login = (response)=>{
-        history.push('/home')
+        if(isStaff)
+            history.push('staff/home')
+        else
+            history.push('home')
     }
     return (
         <div>
@@ -26,6 +29,7 @@ function Landing() {
                     onFailure={login}
                     theme="dark"
                 />
+                {/* <Button onClick={login} variant="contained" color="primary">Login</Button> */}
             </div>
         </div>
     )
