@@ -1,4 +1,5 @@
 import React, {useState,useEffect} from 'react'
+import {useLocation} from 'react-router-dom'
 import Header from '../../components/Header'
 import ExerciseCard from '../../components/ExerciseCard'
 import Dialog from '@material-ui/core/Dialog';
@@ -12,7 +13,8 @@ import FileCopyIcon from '@material-ui/icons/FileCopy'
 import {
     KeyboardTimePicker,
     KeyboardDatePicker,
-  } from '@material-ui/pickers';
+} from '@material-ui/pickers';
+const axios = require('axios')
 
 const EXERCISE = [
     {
@@ -50,12 +52,15 @@ const styles = {
     }
 }
 function ExerciseFormDialog({exerciseNumber,open,handleDialogClose,exercise,setExercise}){
-    const [image,setImage] = useState(null)
+    const [file,setFile] = useState(null)
     const handleInputChange = (e)=>{
         setExercise({...exercise,[e.target.name]:e.target.value})
     }
-    const handleImageInputChange = (e)=>{
-        setImage({...image,[e.target.name]:URL.createObjectURL(e.target.files[0])})
+    const handleFileUploadChange = (e)=>{
+        setFile({...file,[e.target.name]:e.target.files[0]})
+    }
+    const check = ()=>{
+        console.log(file)
     }
     return(
         <Dialog open={open} onClose={handleDialogClose} fullWidth>
@@ -82,7 +87,7 @@ function ExerciseFormDialog({exerciseNumber,open,handleDialogClose,exercise,setE
             multiline
             rows={4}
             variant="outlined"
-            name="exer_description"
+            name="prob_stmt"
             onChange={handleInputChange}
             fullWidth
             />
@@ -95,12 +100,12 @@ function ExerciseFormDialog({exerciseNumber,open,handleDialogClose,exercise,setE
                     <input
                         type="file"
                         hidden
-                        onChange={handleImageInputChange}
+                        onChange={handleFileUploadChange}
                         name="inputFile"
                     />
                     </Button>
-                    {image&&image.inputFile&&<FileCopyIcon style={{width:80,height:80}} onClick={()=>{
-                        window.open(image.inputFile)
+                    {file&&file.inputFile&&<FileCopyIcon style={{width:80,height:80}} onClick={()=>{
+                        window.open(file.inputFile)
                     }} onMouseEnter={(e)=>{e.target.style.cursor = "pointer"}}/>}
                 </div>
                 <div style={{display:'flex',flexDirection:'column'}}>
@@ -110,21 +115,20 @@ function ExerciseFormDialog({exerciseNumber,open,handleDialogClose,exercise,setE
                         type="file"
                         hidden
                         name="outputFile"
-                        onChange={handleImageInputChange}
+                        onChange={handleFileUploadChange}
                     />
                     </Button>
-                    {image&&image.outputFile&&<FileCopyIcon style={{width:80,height:80}} onClick={()=>{
-                        window.open(image.outputFile)
+                    {file&&file.outputFile&&<FileCopyIcon style={{width:80,height:80}} onClick={()=>{
+                        window.open(file.outputFile)
                     }} onMouseEnter={(e)=>{e.target.style.cursor = "pointer"}}/>}
                 </div>
             </div>
           </div>
           <div style={styles.inputContainer}>
-              Deadline
+              Deadline (Number of days from today)
              <TextField
-             lable="Exercise Deadline"
-             type="date"
-             name="exer_deadline"
+             label="Deadline"
+             name="timelimit"
              onChange={handleInputChange}
              fullWidth/>
           </div>
@@ -133,7 +137,9 @@ function ExerciseFormDialog({exerciseNumber,open,handleDialogClose,exercise,setE
           <Button onClick={handleDialogClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleDialogClose} color="primary">
+          <Button onClick={(e)=>{
+              handleDialogClose(e,file)
+          }} color="primary">
             Create
           </Button>
         </DialogActions>
@@ -148,27 +154,65 @@ function Exercise(){
         title:"",
         date_of_creation:0
     })
-
+    const location = useLocation()
     const openDialog = () => {
         setDialogOpen(true);
     };
 
-    const handleDialogClose = (e) => {
+    const handleDialogClose = (e,file) => {
         if(e.target.innerHTML === "Create"){
-            setExercise({...exercise,date_of_creation:Date.now()*1000})
-            let newExercise = exercises
-            exercises.push(exercise)
-            setExercises(newExercise)
+            console.log(exercise)
+            
+
+            axios.post(`http://localhost:3002/exercise/addexer`,{...exercise,date_of_creation:Date.now()*1000
+        ,labId:location.state.labId,exer_no:exercises.length+1}).then((res)=>{
+            console.log(res.data)
+                fetchAllExercises()
+                const formData = new FormData()
+                formData.append('input',file.inputFile,file.inputFile.name)
+                formData.append('output',file.outputFile,file.outputFile.name)
+                formData.append('exerId',res.data.exerId)
+                axios.post(`http://localhost:3002/exercise/uploadFiles`,formData).then((res)=>{
+                    console.log(res.data)
+                }).catch((err)=>{
+                    console.log("Failed To Upload")
+                    console.log(err)
+                })
+            }).catch((err)=>{
+                console.log(err)
+            })
+            setDialogOpen(false)
+
             setExercise({
                 exer_no:null,
                 title:"",
                 date_of_creation:0
             })
         }
-        setDialogOpen(false);
-    };    
+        else if(e.target.innerHTML ==="Cancel"){
+            setDialogOpen(false)
+        }
+        //setDialogOpen(false);
+    };  
+    const fetchAllExercises = ()=>{
+        let labId = location.state.labId
+        axios.get(`http://localhost:3002/lab/viewAllExercise`,{
+            params:{labId:labId}
+        }).then((res)=>{
+            console.log(res.data)
+            if(res.data.message === "Lab Not Found!"){
+                setExercises([])
+            }
+            else
+                setExercises(res.data)
+        }).catch((err)=>{
+            console.log("Error fetching exercises")
+            console.log(err)
+        })
+    }  
     useEffect(()=>{
-        setExercises(EXERCISE)
+        fetchAllExercises()
+        // setExercises(EXERCISE)
         setExercise({...exercise,exer_no:exercises.length+1})
     },[])
     return(
@@ -176,7 +220,7 @@ function Exercise(){
             <Header/>
             <div style={styles.root}>
                 <div style={styles.cardsGrid}>
-                    {exercises.map((exercise,idx)=>(
+                    {exercises.length>0 && exercises.map((exercise,idx)=>(
                         <ExerciseCard key={idx} exercise={exercise} isStudent={false}/>
                     ))}
                     <ExerciseCard openDialog={openDialog}/>

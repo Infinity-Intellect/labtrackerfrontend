@@ -33,7 +33,7 @@ export default function ExerciseCard({openDialog,exercise=null,isStudent=false})
   const classes = useStyles();
   const history = useHistory()
   const viewExercise = ()=>{
-    history.push('/exercisedetails')
+    history.push({pathname:'/exercisedetails',state:{exercise:exercise}})
   }
   if(exercise===null){
     return(

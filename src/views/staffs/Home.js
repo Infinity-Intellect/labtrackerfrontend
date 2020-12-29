@@ -14,7 +14,23 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField'
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import Input from '@material-ui/core/Input';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+const axios = require('axios')
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        width: 250,
+      },
+    },
+  };
 const LAB = [
     {
         lab_name:"Data structures and Algorithms",
@@ -67,7 +83,25 @@ const styles={
         marginTop:'4%'
     }
 }
-function LabFormDialog({open,handleDialogClose,lab,setLab}){
+const STUDENTS = [
+    {
+        studentId:'3'
+    },
+    {
+        studentId:'4'
+    }
+]
+const STAFFS = [
+    {
+        staffId:'1'
+    },
+    {
+        staffId:'2'
+    }
+]
+function LabFormDialog({open,handleDialogClose,lab,setLab,students,staffs}){
+    const [selectedStudents,setSelectedStudents] = useState([])
+    const [selectedStaffs,setSelectedStaffs] = useState([])
     const handleInputChange = (e)=>{
         setLab({...lab,[e.target.name]:e.target.value})
     }
@@ -88,6 +122,50 @@ function LabFormDialog({open,handleDialogClose,lab,setLab}){
                 onChange={handleInputChange}
                 fullWidth
             />
+          </div>
+          <div style={styles.inputContainer}>
+            <FormControl fullWidth>
+                <InputLabel id="demo-mutiple-name-label">Staffs</InputLabel>
+                <Select
+                labelId="demo-mutiple-name-label"
+                id="demo-mutiple-name"
+                multiple
+                value={selectedStaffs}
+                onChange={(event)=>{
+                    setSelectedStaffs(event.target.value)
+                }}
+                input={<Input />}
+                MenuProps={MenuProps}
+                >
+                {staffs.map((staff) => (
+                    <MenuItem key={staff.staffId} value={staff.staffId}>
+                    {staff.staffId}
+                    </MenuItem>
+                ))}
+                </Select>
+            </FormControl>
+          </div>
+          <div style={styles.inputContainer}>
+            <FormControl fullWidth>
+                <InputLabel id="demo-mutiple-name-label">Students</InputLabel>
+                <Select
+                labelId="demo-mutiple-name-label"
+                id="demo-mutiple-name"
+                multiple
+                onChange={(event)=>{
+                    setSelectedStudents(event.target.value)
+                }}
+                value={selectedStudents}
+                input={<Input />}
+                MenuProps={MenuProps}
+                >
+                {students.map((student) => (
+                    <MenuItem key={student.studentId} value={student.studentId}>
+                    {student.studentId}
+                    </MenuItem>
+                ))}
+                </Select>
+            </FormControl>
           </div>
           <div style={styles.inputContainer}>
             <TextField
@@ -116,7 +194,10 @@ function LabFormDialog({open,handleDialogClose,lab,setLab}){
           <Button onClick={handleDialogClose} color="primary">
             Cancel
           </Button>
-          <Button id="create" onClick={handleDialogClose} color="primary">
+          <Button id="create" onClick={(e)=>{
+              console.log(selectedStudents)
+              handleDialogClose(e,selectedStaffs,selectedStudents)
+          }} color="primary">
             Create
           </Button>
         </DialogActions>
@@ -129,35 +210,77 @@ function Home({isStaff}) {
     const [pastLabs,setPastLabs] = useState([])
     const [tabValue,setTabValue] = useState(0)
     const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [students,setStudents] = useState([])
+    const [staffs,setStaffs] = useState([])
     const [lab,setLab ] =useState({
         lab_name:"",
         lab_description:"",
         lab_code:""
     })
+    const [staffId] = useState(1)
     const openDialog = () => {
         setDialogOpen(true);
         console.log("OPEN DIALOG")
     };
 
-    const handleDialogClose = (e) => {
+    const handleDialogClose = (e,selectedStaffs,selectedStudents) => {
         if(e.target.innerHTML === "Create"){
-            let newCurLabs = currentLabs
-            newCurLabs.push(lab)
-            setCurrentLabs(newCurLabs)
+            axios.post(`http://localhost:3002/lab/addlab`,{...lab,student_ids:selectedStudents,staff_ids:selectedStaffs}).then((res)=>{
+                console.log(res)
+                fetchAllLabs()
+            }).catch((err)=>{
+                console.log("Error adding new lab")
+                console.log(err)
+            })
             setLab({
                 lab_name:"",
                 lab_description:"",
-                lab_code:""
+                lab_code:"",
+                student_ids:[],
+                staff_ids:[]
             })
+
         }
         setDialogOpen(false);
     };
     const handleTabChange = (event,newValue)=>{
         setTabValue(newValue)
     }
+    const fetchAllLabs = ()=>{
+        axios.get('http://localhost:3002/staff/viewAllLabs',{
+            params:{staffId:staffId}
+        }).then((res)=>{
+            console.log(res.data)
+            setCurrentLabs(res.data)
+        }).catch((err)=>{
+            console.log("Error fetching all labs")
+            console.log(err)
+        })
+    }
+    const fetchAllStudents = ()=>{
+        axios.get(`http://localhost:3002/student/allStudents`).then((res)=>{
+            setStudents(res.data)
+        }).catch((err)=>{
+            console.log("Error fetching students")
+            console.log(err)
+        })
+    }
+    const fetchAllStaffs = ()=>{
+        axios.get(`http://localhost:3002/staff/allStaffs`).then((res)=>{
+            setStaffs(res.data)
+        }).catch((err)=>{
+            console.log("Error fetching students")
+            console.log(err)
+        })
+    }
     useEffect(()=>{
-      setCurrentLabs(LAB)
+      //setCurrentLabs(LAB)
+      //setStaffs(STAFFS)
+      //setStudents(STUDENTS)
+      fetchAllStaffs()
+      fetchAllStudents()
       setPastLabs(PLAB)
+      fetchAllLabs()
       console.log("Is staff "+isStaff)
     },[])
     return (
@@ -177,20 +300,21 @@ function Home({isStaff}) {
                 </Paper>
                 <div style={styles.cardsGrid}>
                     {tabValue === 0 && ((currentLabs.length>0 && currentLabs.map((lab,idx)=>(
-                        <LabCard key={idx} lab={lab} isStudent={!isStaff}/>
+                        <LabCard key={idx} lab={lab} isStudent={isStaff}/>
                     )))||(currentLabs.length===0 && 
                     <div style={{padding:100}}>
                         No Current Labs !
                     </div>))}
                     {tabValue === 1 && ((pastLabs.length>0 && pastLabs.map((lab,idx)=>(
-                        <LabCard key={idx} lab={lab} isStudent={!isStaff}/>
+                        <LabCard key={idx} lab={lab} isStudent={isStaff}/>
                     )))||(pastLabs.length===0 && 
                     <div style={{padding:100}}>
                         No Past Labs !
                     </div>))}
                     <LabCard openDialog={openDialog}/>
                     {lab&&<LabFormDialog open={dialogOpen} handleDialogClose={handleDialogClose}
-                    lab={lab} setLab = {setLab}/>}
+                    lab={lab} setLab = {setLab}
+                    students={students} staffs={staffs}/>}
                 </div>
             </div>
         </div>

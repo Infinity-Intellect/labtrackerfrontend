@@ -1,13 +1,15 @@
 import './App.css';
-import {BrowserRouter as Router,Route,Switch} from 'react-router-dom' 
+import {BrowserRouter as Router,Route,Switch, useHistory} from 'react-router-dom' 
+import React,{useState,useEffect} from 'react'
 import Home from './views/students/Home'
 import Landing from './views/Landing'
 import Exercise from './views/students/Exercise'
 import ExerciseDetails from './views/students/ExerciseDetails'
 import StaffHome from './views/staffs/Home'
 import StaffExercise from './views/staffs/Exercise'
+
 function App() {
-  const isStaff = true
+  const isStaff = false
   return (
     <Router>
       <div>

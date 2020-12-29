@@ -27,12 +27,13 @@ const useStyles = makeStyles({
 export default function LabCard({openDialog,lab=null,isStudent=true}) {
   const classes = useStyles()
   const history = useHistory()
+  console.log("In lab card "+isStudent)
   const goToExercise = ()=>{
-    console.log(isStudent)
+    console.log("In exercise "+isStudent)
     if(!isStudent)
-      history.push('/staff/exercise')
+      history.push({pathname:'/staff/exercise',state:{labId:lab.labId}})
     else
-      history.push('/exercise')
+      history.push({pathname:'/exercise',state:{labId:lab.labId}})
   }
   if(lab===null){
     return(

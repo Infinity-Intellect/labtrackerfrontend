@@ -8,6 +8,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import HistoryIcon from '@material-ui/icons/History'
 import ListIcon from '@material-ui/icons/List'
+const axios = require('axios')
 
 const LAB = [
     {
@@ -63,12 +64,25 @@ function Home() {
     const [currentLabs,setCurrentLabs] = useState([])
     const [pastLabs,setPastLabs] = useState([])
     const [tabValue,setTabValue] = useState(0)
+    const [studentId] = useState(3)
     const handleTabChange = (event,newValue)=>{
         setTabValue(newValue)
     }
+    const fetchAllLabs = ()=>{
+        axios.get('http://localhost:3002/student/viewAllLabs',{
+            params:{studentId:studentId}
+        }).then((res)=>{
+            console.log(res.data)
+            setCurrentLabs(res.data)
+        }).catch((err)=>{
+            console.log("Error fetching all labs")
+            console.log(err)
+        })
+    }
     useEffect(()=>{
-      setCurrentLabs(LAB)
-      setPastLabs(PLAB)
+        //TODO:Assign Student ID from local storage based on google id
+        fetchAllLabs()
+        setPastLabs(PLAB)
     },[])
     return (
         <div>

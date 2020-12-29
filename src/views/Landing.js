@@ -10,13 +10,28 @@ const styles = {
         minHeight: "80vh",
     }
 }
-function Landing({isStaff}) {
+function Landing({isStaff,email,setIsStaff}) {
     const history = useHistory()
     const login = (response)=>{
+        // if(response.profileObj.email === "snavaneetharan_cs@mepcoeng.ac.in")
+        // {
+        //     history.push('staff/home')
+        //     setIsStaff(true)
+        // }
+        // else if(response.profileObj.email ==="snavaneetharan@gmail.com" )
+        // {
+        //     history.push('home')
+        // }
+        console.log("IN login "+isStaff)
         if(isStaff)
+        {
             history.push('staff/home')
-        else
+            //setIsStaff(true)
+        }
+        else if(!isStaff)
+        {
             history.push('home')
+        }
     }
     return (
         <div>

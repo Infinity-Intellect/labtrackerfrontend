@@ -1,7 +1,8 @@
 import React, {useState,useEffect} from 'react'
 import Header from '../../components/Header'
 import ExerciseCard from '../../components/ExerciseCard'
-
+import {useLocation} from 'react-router-dom'
+const axios = require('axios')
 const EXERCISE = [
     {
         exer_no:1,
@@ -36,8 +37,20 @@ const styles = {
 }
 function Exercise(){
     const [exercises,setExercises] = useState([])
+    const location = useLocation()
+    const fetchAllExercises = ()=>{
+        let labId = location.state.labId
+        axios.get(`http://localhost:3002/lab/viewAllExercise`,{
+            params:{labId:labId}
+        }).then((res)=>{
+            setExercises(res.data)
+        }).catch((err)=>{
+            console.log("Error fetching exercises")
+            console.log(err)
+        })
+    } 
     useEffect(()=>{
-        setExercises(EXERCISE)
+        fetchAllExercises()
     },[])
     return(
         <div>
