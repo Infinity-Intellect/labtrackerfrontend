@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import FileCopyIcon from '@material-ui/icons/FileCopy'
+import CircularProgress from '@material-ui/core/CircularProgress';
 const axios = require('axios')
 const problemStatement = `Problem Statement: Consider a permutation of numbers from 1 to N written on a paper. Let’s denote the product of its element as ‘prod’ and the sum of its elements as ‘sum’. Given a positive integer N, your task is to determine whether ‘prod’ is divisible by ‘sum’ or not.
 
@@ -48,10 +49,12 @@ export default function ExerciseDetails({isStaff}){
     const [isVerified,setIsVerified] = useState(false)
     const [exercise,setExercise] = useState(null)
     const [verifiedResult,setVerifiedResult] = useState("")
+    const [isVerifying,setIsVerifying] = useState(false)
     const handleInputFileChange = (e)=>{
         setFile(e.target.files[0])
     }
     const onVerificationClick = ()=>{
+        setIsVerifying(true)
         let formData = new FormData()
         formData.append('program',file)
         formData.append('exerId',exercise.exerId)
@@ -59,6 +62,7 @@ export default function ExerciseDetails({isStaff}){
         axios.post(`http://localhost:3002/exercise/verifyprogram`,formData).then((res)=>{
             setVerifiedResult(res.data)
             setIsVerified(true)
+            setIsVerifying(false)
             console.log(res.data)
         }).catch((err)=>{
             console.log("Error verifying")
@@ -102,6 +106,9 @@ export default function ExerciseDetails({isStaff}){
                     <FileCopyIcon style={{width:100,height:100}} onMouseEnter={(e)=>{e.target.style.cursor="pointer"}}
                 onClick={()=>{window.open(file)}}/>
                 </div>}
+                {isVerifying && <div style={{display:'flex',justifyContent:'center'}}>
+                    <CircularProgress style={{width:50,height:50}}/>
+                </div>}
                 {file&&isVerified&&<CardContent>
                     <div style={{display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}}>
                         <div>
@@ -112,7 +119,9 @@ export default function ExerciseDetails({isStaff}){
                         </div> */}
                         <div>
                             <Typography style={{color:verifiedResult!=='All cases passed!'?'red':'green'}}>
-                                {verifiedResult}
+                                {verifiedResult.split('\n').map((part)=>(
+                                    <p>{part}</p>
+                                ))}
                             </Typography>
                         </div>
                     </div>

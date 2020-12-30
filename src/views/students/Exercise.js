@@ -57,7 +57,7 @@ function Exercise(){
             <Header/>
             <div style={styles.root}>
                 <div style={styles.cardsGrid}>
-                    {exercises.map((exercise,idx)=>(
+                    {exercises.length>0 && exercises.map((exercise,idx)=>(
                         <ExerciseCard key={idx} exercise={exercise}/>
                     ))}
                 </div>

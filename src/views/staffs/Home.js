@@ -300,13 +300,13 @@ function Home({isStaff}) {
                 </Paper>
                 <div style={styles.cardsGrid}>
                     {tabValue === 0 && ((currentLabs.length>0 && currentLabs.map((lab,idx)=>(
-                        <LabCard key={idx} lab={lab} isStudent={isStaff}/>
+                        <LabCard key={idx} lab={lab} isStudent={!isStaff}/>
                     )))||(currentLabs.length===0 && 
                     <div style={{padding:100}}>
                         No Current Labs !
                     </div>))}
                     {tabValue === 1 && ((pastLabs.length>0 && pastLabs.map((lab,idx)=>(
-                        <LabCard key={idx} lab={lab} isStudent={isStaff}/>
+                        <LabCard key={idx} lab={lab} isStudent={!isStaff}/>
                     )))||(pastLabs.length===0 && 
                     <div style={{padding:100}}>
                         No Past Labs !

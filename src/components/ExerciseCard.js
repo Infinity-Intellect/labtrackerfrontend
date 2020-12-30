@@ -35,6 +35,8 @@ export default function ExerciseCard({openDialog,exercise=null,isStudent=false})
   const viewExercise = ()=>{
     history.push({pathname:'/exercisedetails',state:{exercise:exercise}})
   }
+  console.log("In exercise card")
+  console.log(exercise)
   if(exercise===null){
     return(
       <Card className={classes.root} variant="outlined" onMouseEnter={(e)=>{
